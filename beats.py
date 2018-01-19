@@ -25,14 +25,24 @@ y, sr = librosa.load(filename)
 D = librosa.stft(y)
 print(D)
 
-speed = np.abs(D[0])
-rev   = np.abs(D[1])
+# m = 0
+# q = 0
+# for i in range(D.shape[0]):
+#   x = np.average(np.abs(D[i]))
+#   if x > m and i != 14:
+#     m = x
+#     q = i
+# print(D.shape)
+# print(q)
+
+speed = np.abs(D[14])
+rev   = np.abs(D[10])
 
 speed /= np.max(speed, axis=0)
 speed *= 140
-np.savetxt('speed.csv', speed)
+np.savetxt('speed.csv', speed, fmt='%10.5f')
 
 rev /= np.max(rev, axis=0)
 rev *= 8
 
-np.savetxt('rev.csv', rev)
+np.savetxt('rev.csv', rev, fmt='%10.5f')

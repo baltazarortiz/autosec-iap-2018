@@ -56,9 +56,9 @@ def can_init(channel):
     bustype = 'socketcan_native'
     return can.interface.Bus(channel=channel, bustype=bustype)
 
-def send_msg(bus, id, data, count):
+def send_msg(bus, aid, data, count):
     msg = can.Message(extended_id=False)
-    msg.arbitration_id = id
+    msg.arbitration_id = aid
     msg.data = data
 
     bus.send(msg)
@@ -108,7 +108,7 @@ def mph_step():
     bus = can_init('can0')
 
     while True:
-        data = gen_mph_data(target, count)
+        data = gen_mph_data(target, count, 0)
         send_msg(bus, MPH_ID, data, count)
 
         count = (count + 1) % 4
@@ -124,7 +124,7 @@ def tach_step():
     bus = can_init('can0')
 
     while True:
-        data = gen_tach_data(target, count)
+        data = gen_tach_data(target, count, 0)
         send_msg(bus, TACH_ID, data, count)
         
         count = (count + 1)% 4
@@ -151,13 +151,14 @@ def move_on_timestamps():
     rev_timestamps, mph_timestamps = get_timestamps()    
 
     for i in range(len(rev_timestamps)):
-        rev_data = gen_tach_data(rev_timestamps[i], count, 10)
-        mph_data = gen_mph_data(mph_timestamps[i], count, 10)
+        rev_data = gen_tach_data(rev_timestamps[i], count, 2)
+        mph_data = gen_mph_data(mph_timestamps[i], count, 20)
 
-        t_end = time.time() + 0.023
+        t_end = time.time() + 0.023 - 2*0.0001
         while time.time() < t_end:
             send_msg(bus, TACH_ID, rev_data, count)
             send_msg(bus, MPH_ID, mph_data, count) 
+            count = (count + 1)% 4
             
 def main():
     move_on_timestamps()

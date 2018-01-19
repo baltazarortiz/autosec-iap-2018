@@ -112,7 +112,7 @@ def send_msg(arb_id, data):
     bus.send(msg)
 
 
-def pulse():
+def pulse(pulse_len):
     # msg = can.Message(extended_id=False, arbitration_id = safety_id)
     # #Construct data fields
     # msg.data = binascii.unhexlify(safety_bag[j%4])
@@ -134,7 +134,7 @@ def pulse():
     msg.data = binascii.unhexlify(tpms[0])
     bus.send(msg)    
 
-    time.sleep(.2)
+    time.sleep(pulse_len)
 
     # Turn off seatbelt
     msg = can.Message(extended_id=False, arbitration_id = seatbelt_id)
@@ -184,16 +184,17 @@ j = 0
     # j+=1
 
 
-timestamps = open("timestamps", 'r').readlines()
+timestamps = open(sys.argv[1], 'r').readlines()
 timestamps = [float(l.strip()) for l in timestamps]
 
 for i in range(len(timestamps)):
     if i == len(timestamps)-1:
         print("Done")
         break
-    pulse()
+    pulse_time = .23
+    pulse(pulse_time)
 
-    wait = timestamps[i+1] - timestamps[i]
+    wait = timestamps[i+1] - timestamps[i] - pulse_time
     print ("wait", wait)
     time.sleep(wait)
 

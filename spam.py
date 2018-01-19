@@ -7,7 +7,7 @@ import binascii
 
 bustype = 'socketcan_native'
 channel = 'can0'
-bus = can.interface.Bus(channel=channel,bustype=bustype)
+#bus = can.interface.Bus(channel=channel,bustype=bustype)
 
 speed_id = 0x158
 tach_id = 0x1DC
@@ -105,14 +105,14 @@ tpms = list(map(add_checksum_tpms, tpms))
 
 print("tpms", tpms)
 
-def send_msg(arb_id, data):
+def send_msg(bus, arb_id, data):
     msg = can.Message(extended_id=False, arbitration_id = speed_id)
     #Construct data fields
     msg.data = binascii.unhexlify(data)
     bus.send(msg)
 
 
-def pulse(pulse_len):
+def pulse(bus, pulse_len):
     # msg = can.Message(extended_id=False, arbitration_id = safety_id)
     # #Construct data fields
     # msg.data = binascii.unhexlify(safety_bag[j%4])
@@ -183,18 +183,21 @@ j = 0
 
     # j+=1
 
-
-def pulse_timestamps():
+def call_pulse_timestamps():
     timestamps = open('beat_times.csv', 'r').readlines()
-    timestamps = [float(l.strip()) for l in timestamps]
+    timestamps = [float(l.strip()) for l in timestamps] 
+    bus = can.interface.Bus(channel=channel,bustype=bustype)
+    input('Parsing done. Press enter to start playing')
+    pulse_timestamps(bus, timestamps)
 
+def pulse_timestamps(bus, timestamps):
     for i in range(len(timestamps)):
         if i == len(timestamps)-1:
             print("Done")
             break
         s = time.time()
         pulse_time = .23
-        pulse(pulse_time)
+        pulse(bus, pulse_time)
         diff = time.time() - s
 
         wait = timestamps[i+1] - timestamps[i] - diff

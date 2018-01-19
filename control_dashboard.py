@@ -143,12 +143,15 @@ def get_timestamps():
 
     return(rev_timestamps, mph_timestamps)
 
-def move_on_timestamps():
+def call_move_on_timestamps():
+    bus = can_init('can0')
+    rev_timestamps, mph_timestamps = get_timestamps()    
+    input('Parsing done. Press enter to start playing')
+    move_on_timestamps(rev_timestamps, mph_timestamps)
+
+def move_on_timestamps(bus, rev_timestamps, mph_timestamps):
     count = 0    
     target = 0
-    bus = can_init('can0')
-
-    rev_timestamps, mph_timestamps = get_timestamps()    
 
     for i in range(len(rev_timestamps)):
         rev_data = gen_tach_data(rev_timestamps[i], count, 2)

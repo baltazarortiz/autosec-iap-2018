@@ -64,19 +64,23 @@ def send_msg(bus, id, data, count):
     bus.send(msg)
     time.sleep(0.0001)
 
-def gen_mph_data(target, count):
-    if(target < 0 or target > 140):
-        raise ValueError('Tachometer target must be a value from 0 to 140')
+def gen_mph_data(target, count, gain):
+    if target < 0:
+        target = 0
+    elif target > 140:
+        target = 140
 
     val = '{0:0{1}x}'.format(int(map(target, 0, 140, MPH_MIN, MPH_MAX)), 4)
     val = val + '0000' + val
     return bytes.fromhex(val + '00' + str(count) + mph_checksum(val, count))
 
-def gen_tach_data(target, count):
-    if(target < 0 or target > 8):
-        raise ValueError('Tachometer target must be a value from 0 to 8')
+def gen_tach_data(target, count, gain):
+    if target + gain < 0:
+        target = 0
+    elif target + gain > 8:
+        target = 8
 
-    val = '02' + '{0:0{1}x}'.format(int(map(target, 0, 8, TACH_MIN, TACH_MAX)), 4)
+    val = '02' + '{0:0{1}x}'.format(int(map(target + gain, 0, 8, TACH_MIN, TACH_MAX)), 4)
     return  bytes.fromhex(str(val) + str(count) + tach_checksum(str(val), count))
 
 def mph_toggle():
@@ -128,9 +132,35 @@ def tach_step():
         if i % 4000 == 0:
             target = (target + 0.5) % 9
             print('changing target to', target)
+
+# Separated every 0.023 seconds
+def get_timestamps():
+    rev_timestamp_file = open('rev.csv', 'r')
+    mph_timestamp_file = open('speed.csv', 'r')
+
+    rev_timestamps = [float(l) for l in rev_timestamp_file]
+    mph_timestamps = [float(l) for l in mph_timestamp_file]
+
+    return(rev_timestamps, mph_timestamps)
+
+def move_on_timestamps():
+    count = 0    
+    target = 0
+    bus = can_init('can0')
+
+    rev_timestamps, mph_timestamps = get_timestamps()    
+
+    for i in range(len(rev_timestamps)):
+        rev_data = gen_tach_data(rev_timestamps[i], count, 10)
+        mph_data = gen_mph_data(mph_timestamps[i], count, 10)
+
+        t_end = time.time() + 0.023
+        while time.time() < t_end:
+            send_msg(bus, TACH_ID, rev_data, count)
+            send_msg(bus, MPH_ID, mph_data, count) 
             
 def main():
-    tach_step()
+    move_on_timestamps()
 
 if __name__ == '__main__':
    main()

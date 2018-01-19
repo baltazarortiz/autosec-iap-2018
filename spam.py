@@ -184,8 +184,6 @@ j = 0
     # j+=1
 
 
-
-
 def pulse_timestamps():
     timestamps = open('beat_times.csv', 'r').readlines()
     timestamps = [float(l.strip()) for l in timestamps]

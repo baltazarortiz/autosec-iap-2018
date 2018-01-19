@@ -184,19 +184,22 @@ j = 0
     # j+=1
 
 
-timestamps = open(sys.argv[1], 'r').readlines()
-timestamps = [float(l.strip()) for l in timestamps]
+def pulse_timestamps():
+    timestamps = open('beat_times.csv', 'r').readlines()
+    timestamps = [float(l.strip()) for l in timestamps]
 
-for i in range(len(timestamps)):
-    if i == len(timestamps)-1:
-        print("Done")
-        break
-    pulse_time = .23
-    pulse(pulse_time)
+    for i in range(len(timestamps)):
+        if i == len(timestamps)-1:
+            print("Done")
+            break
+        s = time.time()
+        pulse_time = .23
+        pulse(pulse_time)
+        diff = time.time() - s
 
-    wait = timestamps[i+1] - timestamps[i] - pulse_time
-    print ("wait", wait)
-    time.sleep(wait)
+        wait = timestamps[i+1] - timestamps[i] - diff
+        print ("wait", wait)
+        time.sleep(wait)
 
 
 
